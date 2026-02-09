@@ -9,7 +9,7 @@
 
 ## 1. Motivation
 
-Before this refactoring, `yt-content-analyzer` worked only as a CLI tool. It could not be imported as a Python library&mdash;`from yt_content_analyzer import run_all` failed because:
+Before this refactoring, `tube-sift` worked only as a CLI tool. It could not be imported as a Python library&mdash;`from tube_sift import run_all` failed because:
 
 - There was no public API surface (the top-level `__init__.py` was nearly empty).
 - 7 of 8 subpackages were missing `__init__.py` files.
@@ -28,17 +28,17 @@ The goal was to make the package **dual-use**: importable as a Python library wi
 
 | File | Purpose |
 |------|---------|
-| `src/yt_content_analyzer/exceptions.py` | Exception hierarchy for library consumers |
-| `src/yt_content_analyzer/models.py` | Structured result dataclasses (`RunResult`, `PreflightResult`) |
-| `src/yt_content_analyzer/collectors/__init__.py` | Re-exports `collect_comments_ytdlp`, `collect_transcript_ytdlp` |
-| `src/yt_content_analyzer/parse/__init__.py` | Re-exports `normalize_comments`, `normalize_transcripts`, `chunk_transcripts` |
-| `src/yt_content_analyzer/enrich/__init__.py` | Re-exports `analyze_sentiment`, `extract_topics_llm`, `extract_topics_nlp`, `extract_triples`, `compute_embeddings` |
-| `src/yt_content_analyzer/preflight/__init__.py` | Re-exports `run_preflight` |
-| `src/yt_content_analyzer/state/__init__.py` | Re-exports `CheckpointStore` |
-| `src/yt_content_analyzer/utils/__init__.py` | Re-exports `read_jsonl`, `write_jsonl`, `write_csv`, `write_failure` |
-| `src/yt_content_analyzer/discovery/__init__.py` | Empty (scaffold subpackage) |
-| `src/yt_content_analyzer/reporting/__init__.py` | Empty (scaffold subpackage) |
-| `src/yt_content_analyzer/knowledge_graph/__init__.py` | Empty (scaffold subpackage) |
+| `src/tube_sift/exceptions.py` | Exception hierarchy for library consumers |
+| `src/tube_sift/models.py` | Structured result dataclasses (`RunResult`, `PreflightResult`) |
+| `src/tube_sift/collectors/__init__.py` | Re-exports `collect_comments_ytdlp`, `collect_transcript_ytdlp` |
+| `src/tube_sift/parse/__init__.py` | Re-exports `normalize_comments`, `normalize_transcripts`, `chunk_transcripts` |
+| `src/tube_sift/enrich/__init__.py` | Re-exports `analyze_sentiment`, `extract_topics_llm`, `extract_topics_nlp`, `extract_triples`, `compute_embeddings` |
+| `src/tube_sift/preflight/__init__.py` | Re-exports `run_preflight` |
+| `src/tube_sift/state/__init__.py` | Re-exports `CheckpointStore` |
+| `src/tube_sift/utils/__init__.py` | Re-exports `read_jsonl`, `write_jsonl`, `write_csv`, `write_failure` |
+| `src/tube_sift/discovery/__init__.py` | Empty (scaffold subpackage) |
+| `src/tube_sift/reporting/__init__.py` | Empty (scaffold subpackage) |
+| `src/tube_sift/knowledge_graph/__init__.py` | Empty (scaffold subpackage) |
 | `tests/test_priority1.py` | 441-line test suite covering error handling, logging, checkpoints, CLI resume |
 | `tests/test_api_connectivity.py` | Live API probes for all configured providers |
 
@@ -46,15 +46,15 @@ The goal was to make the package **dual-use**: importable as a Python library wi
 
 | File | Change Summary |
 |------|----------------|
-| `src/yt_content_analyzer/__init__.py` | Full public API surface with `__all__` and version `0.3.0` |
-| `src/yt_content_analyzer/run.py` | `run_all()` returns `RunResult`, accepts `output_dir`, raises `PreflightError` |
-| `src/yt_content_analyzer/cli.py` | Full rewrite with global options and 10 new CLI switches |
-| `src/yt_content_analyzer/utils/logger.py` | Removed singleton, added `setup_cli_logging()` and `setup_file_handler()` |
-| `src/yt_content_analyzer/utils/io.py` | Added `mode` parameter to `write_jsonl()` and `write_csv()` |
-| `src/yt_content_analyzer/preflight/checks.py` | Returns `PreflightResult` instead of `bool` |
-| `src/yt_content_analyzer/config.py` | Added `ON_VIDEO_FAILURE` validator, updated pricing keys |
-| `src/yt_content_analyzer/collectors/comments_playwright_ui.py` | Added `artifact_dir` kwarg |
-| `src/yt_content_analyzer/enrich/llm_client.py` | Added `User-Agent` header to HTTP requests |
+| `src/tube_sift/__init__.py` | Full public API surface with `__all__` and version `0.3.0` |
+| `src/tube_sift/run.py` | `run_all()` returns `RunResult`, accepts `output_dir`, raises `PreflightError` |
+| `src/tube_sift/cli.py` | Full rewrite with global options and 10 new CLI switches |
+| `src/tube_sift/utils/logger.py` | Removed singleton, added `setup_cli_logging()` and `setup_file_handler()` |
+| `src/tube_sift/utils/io.py` | Added `mode` parameter to `write_jsonl()` and `write_csv()` |
+| `src/tube_sift/preflight/checks.py` | Returns `PreflightResult` instead of `bool` |
+| `src/tube_sift/config.py` | Added `ON_VIDEO_FAILURE` validator, updated pricing keys |
+| `src/tube_sift/collectors/comments_playwright_ui.py` | Added `artifact_dir` kwarg |
+| `src/tube_sift/enrich/llm_client.py` | Added `User-Agent` header to HTTP requests |
 | 12 modules (collectors, enrich, utils, state) | Replaced `get_logger()` with `logging.getLogger(__name__)` |
 | `pyproject.toml` | Version 0.2.1 &rarr; 0.3.0 |
 | `CLAUDE.md` | Added new CLI switches and library usage examples |
@@ -75,7 +75,7 @@ The goal was to make the package **dual-use**: importable as a Python library wi
 **`exceptions.py`:**
 
 ```
-YTCAError (base)
+TubeSiftError (base)
   +-- ConfigError          # invalid or inconsistent configuration
   +-- PreflightError       # preflight checks failed (carries .results list)
   +-- CollectionError      # comment/transcript collection failure
@@ -112,9 +112,9 @@ class PreflightResult:
 
 1. **Replaced the singleton** with standard `logging.getLogger(__name__)` in all 13 consumer modules.
 
-2. **Deprecated `get_logger()`** &mdash; it now emits a `DeprecationWarning` and returns `logging.getLogger("yt_content_analyzer")` as a backward-compatible shim.
+2. **Deprecated `get_logger()`** &mdash; it now emits a `DeprecationWarning` and returns `logging.getLogger("tube_sift")` as a backward-compatible shim.
 
-3. **Added `setup_cli_logging(*, verbosity=0)`** &mdash; attaches a `RichHandler` to the `yt_content_analyzer` logger. Called only from `cli.py`. Verbosity mapping:
+3. **Added `setup_cli_logging(*, verbosity=0)`** &mdash; attaches a `RichHandler` to the `tube_sift` logger. Called only from `cli.py`. Verbosity mapping:
    - `-1` (quiet) &rarr; WARNING
    - `0` (default) &rarr; INFO
    - `1+` (verbose) &rarr; DEBUG
@@ -129,7 +129,7 @@ class PreflightResult:
 
 ### Phase 3: Subpackage `__init__.py` Files
 
-**Problem:** 7 of 8 subpackages had no `__init__.py`, making them non-importable as Python packages. `from yt_content_analyzer.collectors import collect_comments_ytdlp` failed.
+**Problem:** 7 of 8 subpackages had no `__init__.py`, making them non-importable as Python packages. `from tube_sift.collectors import collect_comments_ytdlp` failed.
 
 **Solution:** Created `__init__.py` for all 8 subpackages. Implemented packages re-export public symbols with `__all__`. Scaffold-only packages (`discovery/`, `reporting/`, `knowledge_graph/`) have empty init files.
 
@@ -198,7 +198,7 @@ Added `artifact_dir: Path | None = None` kwarg to `collect_comments_playwright_u
 **`__init__.py`** now provides a complete public API:
 
 ```python
-from yt_content_analyzer import (
+from tube_sift import (
     # Core pipeline
     run_all, run_preflight, extract_video_id,
     # Configuration
@@ -206,7 +206,7 @@ from yt_content_analyzer import (
     # Result types
     RunResult, PreflightResult,
     # Exceptions
-    YTCAError, PreflightError, ConfigError, CollectionError, EnrichmentError,
+    TubeSiftError, PreflightError, ConfigError, CollectionError, EnrichmentError,
     # State
     CheckpointStore,
 )
@@ -215,7 +215,7 @@ from yt_content_analyzer import (
 **Library usage example:**
 
 ```python
-from yt_content_analyzer import run_all, Settings, load_settings, PreflightError
+from tube_sift import run_all, Settings, load_settings, PreflightError
 
 cfg = load_settings("config.yml")
 cfg.VIDEO_URL = "https://www.youtube.com/watch?v=abc123"
@@ -316,10 +316,10 @@ The 3 skips are providers without API keys configured (Anthropic, DeepSeek, Toge
 | Bug | Root Cause | Fix |
 |-----|-----------|-----|
 | `_collect_and_process_comments()` signature mismatch in tests | Refactored helper changed from `(cfg, ..., logger)` to `(cfg, ..., result, failures_dir)` | Updated 2 tests in `test_comments_playwright.py` |
-| Logger idempotency test failure | Test referenced removed `_LOGGER` global singleton | Rewrote test to use `logging.getLogger("yt_content_analyzer")` directly |
-| CLI resume test mock miss | `run_all` was lazy-imported inside function body, not at module level | Changed mock path from `yt_content_analyzer.cli.run_all` to `yt_content_analyzer.run.run_all` |
+| Logger idempotency test failure | Test referenced removed `_LOGGER` global singleton | Rewrote test to use `logging.getLogger("tube_sift")` directly |
+| CLI resume test mock miss | `run_all` was lazy-imported inside function body, not at module level | Changed mock path from `tube_sift.cli.run_all` to `tube_sift.run.run_all` |
 | `fake_playwright` missing kwarg | `artifact_dir` parameter added to production function | Added `**kwargs` to mock function |
-| xAI API 403 (Cloudflare 1010) | Python's default `Python-urllib/3.x` User-Agent blocked by Cloudflare | Added `User-Agent: yt-content-analyzer` header to `_post_json()` |
+| xAI API 403 (Cloudflare 1010) | Python's default `Python-urllib/3.x` User-Agent blocked by Cloudflare | Added `User-Agent: tube-sift` header to `_post_json()` |
 | xAI model not found | Wrong model name `grok-4-1-fast` | Corrected to `grok-4-1-fast-non-reasoning` |
 | `datetime.utcnow()` deprecation | Python 3.12 deprecation warning | Changed to `datetime.now(timezone.utc)` |
 
@@ -329,7 +329,7 @@ The 3 skips are providers without API keys configured (Anthropic, DeepSeek, Toge
 
 | Area | Compat Status | Notes |
 |------|--------------|-------|
-| CLI `ytca run-all --config ... --terms ...` | Preserved | Old 2-switch invocation still works |
+| CLI `tube-sift run-all --config ... --terms ...` | Preserved | Old 2-switch invocation still works |
 | `get_logger()` | Deprecated shim | Emits `DeprecationWarning`, returns package logger |
 | `configure_file_logging(log_dir)` | Shim | Delegates to `setup_file_handler()` |
 | `write_jsonl()` / `write_csv()` default mode | Preserved | Default `mode="a"` unchanged |
@@ -343,7 +343,7 @@ The 3 skips are providers without API keys configured (Anthropic, DeepSeek, Toge
 ### Before (v0.2.1)
 
 ```
-yt_content_analyzer/
+tube_sift/
   __init__.py          # empty, no public API
   cli.py               # 2 switches
   run.py               # returns None, raises SystemExit
@@ -362,9 +362,9 @@ yt_content_analyzer/
 ### After (v0.3.0)
 
 ```
-yt_content_analyzer/
+tube_sift/
   __init__.py          # public API: 15 symbols in __all__
-  exceptions.py        # YTCAError hierarchy
+  exceptions.py        # TubeSiftError hierarchy
   models.py            # RunResult, PreflightResult
   cli.py               # 12 switches + global options
   run.py               # returns RunResult, raises PreflightError

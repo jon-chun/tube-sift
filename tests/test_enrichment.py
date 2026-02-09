@@ -6,8 +6,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.enrich.llm_client import (
+from tube_sift.config import Settings
+from tube_sift.enrich.llm_client import (
     chat_completion,
     get_embeddings,
     parse_json_response,
@@ -79,7 +79,7 @@ class TestChatCompletion:
         }
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             result = chat_completion(cfg, [{"role": "user", "content": "Hi"}])
             assert result == "Hello, world!"
 
@@ -99,7 +99,7 @@ class TestChatCompletion:
         mock_resp = _mock_urlopen_response(resp_data)
 
         with patch(
-            "yt_content_analyzer.enrich.llm_client.urllib.request.urlopen",
+            "tube_sift.enrich.llm_client.urllib.request.urlopen",
             side_effect=[error_429, mock_resp],
         ):
             result = chat_completion(cfg, [{"role": "user", "content": "Hi"}])
@@ -117,7 +117,7 @@ class TestGetEmbeddings:
         }
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             result = get_embeddings(cfg, ["hello", "world"])
             assert len(result) == 2
             assert result[0] == [0.1, 0.2, 0.3]
@@ -169,7 +169,7 @@ class TestProviderUrlResolution:
 
 class TestTopicsNlp:
     def test_extract_topics_nlp_tfidf_fallback(self):
-        from yt_content_analyzer.enrich.topics_nlp import extract_topics_nlp
+        from tube_sift.enrich.topics_nlp import extract_topics_nlp
 
         cfg = _make_cfg()
         items = _sample_items(30)
@@ -188,7 +188,7 @@ class TestTopicsNlp:
             assert r["ASSET_TYPE"] == "comments"
 
     def test_extract_topics_nlp_with_embeddings(self):
-        from yt_content_analyzer.enrich.topics_nlp import extract_topics_nlp
+        from tube_sift.enrich.topics_nlp import extract_topics_nlp
         import numpy as np
 
         cfg = _make_cfg()
@@ -212,7 +212,7 @@ class TestTopicsNlp:
             assert isinstance(r["SCORE"], float)
 
     def test_extract_topics_empty_input(self):
-        from yt_content_analyzer.enrich.topics_nlp import extract_topics_nlp
+        from tube_sift.enrich.topics_nlp import extract_topics_nlp
 
         cfg = _make_cfg()
         assert extract_topics_nlp([], "vid", "comments", cfg) == []
@@ -220,7 +220,7 @@ class TestTopicsNlp:
 
 class TestTopicsLlm:
     def test_extract_topics_llm(self):
-        from yt_content_analyzer.enrich.topics_llm import extract_topics_llm
+        from tube_sift.enrich.topics_llm import extract_topics_llm
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         items = _sample_items(10)
@@ -245,7 +245,7 @@ class TestTopicsLlm:
         resp_data = {"choices": [{"message": {"content": llm_response}}]}
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             results = extract_topics_llm(items, "vid789", "comments", cfg)
 
         assert len(results) == 2
@@ -260,7 +260,7 @@ class TestTopicsLlm:
 
 class TestSentimentNlp:
     def test_analyze_sentiment_nlp_positive(self):
-        from yt_content_analyzer.enrich.sentiment import analyze_sentiment_nlp
+        from tube_sift.enrich.sentiment import analyze_sentiment_nlp
 
         cfg = _make_cfg()
         items = [{"TEXT": "This is absolutely wonderful and amazing!", "COMMENT_ID": "c1"}]
@@ -271,7 +271,7 @@ class TestSentimentNlp:
         assert results[0]["SCORE"] > 0.1
 
     def test_analyze_sentiment_nlp_negative(self):
-        from yt_content_analyzer.enrich.sentiment import analyze_sentiment_nlp
+        from tube_sift.enrich.sentiment import analyze_sentiment_nlp
 
         cfg = _make_cfg()
         items = [{"TEXT": "This is terrible, horrible, and disgusting.", "COMMENT_ID": "c2"}]
@@ -282,7 +282,7 @@ class TestSentimentNlp:
         assert results[0]["SCORE"] < -0.1
 
     def test_analyze_sentiment_nlp_schema(self):
-        from yt_content_analyzer.enrich.sentiment import analyze_sentiment_nlp
+        from tube_sift.enrich.sentiment import analyze_sentiment_nlp
 
         cfg = _make_cfg()
         items = [{"TEXT": "Some neutral text here.", "COMMENT_ID": "c3"}]
@@ -293,7 +293,7 @@ class TestSentimentNlp:
         assert required_keys == set(results[0].keys())
 
     def test_analyze_sentiment_dispatch_no_llm(self):
-        from yt_content_analyzer.enrich.sentiment import analyze_sentiment
+        from tube_sift.enrich.sentiment import analyze_sentiment
 
         cfg = _make_cfg(LLM_PROVIDER=None)
         items = [{"TEXT": "Great video!", "COMMENT_ID": "c4"}]
@@ -306,7 +306,7 @@ class TestSentimentNlp:
 
 class TestSentimentLlm:
     def test_analyze_sentiment_llm(self):
-        from yt_content_analyzer.enrich.sentiment import analyze_sentiment_llm
+        from tube_sift.enrich.sentiment import analyze_sentiment_llm
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         items = [
@@ -323,7 +323,7 @@ class TestSentimentLlm:
         resp_data = {"choices": [{"message": {"content": llm_response}}]}
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             results = analyze_sentiment_llm(items, "vid1", "comments", cfg)
 
         assert len(results) == 2
@@ -338,7 +338,7 @@ class TestSentimentLlm:
 
 class TestTriples:
     def test_extract_triples_no_llm(self):
-        from yt_content_analyzer.enrich.triples import extract_triples
+        from tube_sift.enrich.triples import extract_triples
 
         cfg = _make_cfg(LLM_PROVIDER=None)
         items = _sample_items(5)
@@ -346,7 +346,7 @@ class TestTriples:
         assert results == []
 
     def test_extract_triples_with_llm(self):
-        from yt_content_analyzer.enrich.triples import extract_triples
+        from tube_sift.enrich.triples import extract_triples
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         items = [
@@ -374,7 +374,7 @@ class TestTriples:
         resp_data = {"choices": [{"message": {"content": llm_response}}]}
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             results = extract_triples(items, "vid1", "comments", cfg)
 
         assert len(results) == 2
@@ -385,7 +385,7 @@ class TestTriples:
         assert results[1]["PREDICATE"] == "created"
 
     def test_extract_triples_empty_input(self):
-        from yt_content_analyzer.enrich.triples import extract_triples
+        from tube_sift.enrich.triples import extract_triples
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         assert extract_triples([], "vid1", "comments", cfg) == []
@@ -397,26 +397,26 @@ class TestTriples:
 
 class TestEmbeddingsClient:
     def test_compute_embeddings_disabled(self):
-        from yt_content_analyzer.enrich.embeddings_client import compute_embeddings
+        from tube_sift.enrich.embeddings_client import compute_embeddings
 
         cfg = _make_cfg(EMBEDDINGS_ENABLE=False)
         result = compute_embeddings(["hello"], cfg)
         assert result is None
 
     def test_compute_embeddings_empty(self):
-        from yt_content_analyzer.enrich.embeddings_client import compute_embeddings
+        from tube_sift.enrich.embeddings_client import compute_embeddings
 
         cfg = _make_cfg()
         result = compute_embeddings([], cfg)
         assert result == []
 
     def test_compute_embeddings_fallback_on_error(self):
-        from yt_content_analyzer.enrich.embeddings_client import compute_embeddings
+        from tube_sift.enrich.embeddings_client import compute_embeddings
 
         cfg = _make_cfg(EMBEDDINGS_FALLBACK_TO_SAMPLING=True)
 
         with patch(
-            "yt_content_analyzer.enrich.embeddings_client.get_embeddings",
+            "tube_sift.enrich.embeddings_client.get_embeddings",
             side_effect=RuntimeError("connection refused"),
         ):
             result = compute_embeddings(["hello"], cfg)
@@ -433,7 +433,7 @@ class TestEmbeddingsClient:
 
 class TestUrlExtraction:
     def test_basic_extraction(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         items = [
@@ -452,7 +452,7 @@ class TestUrlExtraction:
         assert results[1]["MENTION_COUNT"] == 1
 
     def test_schema_completeness(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         items = [{"TEXT": "Visit https://example.com", "COMMENT_ID": "c1"}]
@@ -468,20 +468,20 @@ class TestUrlExtraction:
         assert results[0]["ASSET_TYPE"] == "comments"
 
     def test_empty_input(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         assert extract_urls([], "vid1", "comments", cfg) == []
 
     def test_no_urls_in_text(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         items = [{"TEXT": "No links here, just plain text!", "COMMENT_ID": "c1"}]
         assert extract_urls(items, "vid1", "comments", cfg) == []
 
     def test_transcript_chunk_item_id(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         items = [{"TEXT": "See https://docs.python.org", "CHUNK_INDEX": 7}]
@@ -491,7 +491,7 @@ class TestUrlExtraction:
         assert results[0]["FIRST_SEEN_ITEM_ID"] == "7"
 
     def test_trailing_punctuation_cleanup(self):
-        from yt_content_analyzer.enrich.url_extraction import extract_urls
+        from tube_sift.enrich.url_extraction import extract_urls
 
         cfg = _make_cfg()
         items = [
@@ -512,14 +512,14 @@ class TestUrlExtraction:
 
 class TestSummarization:
     def test_no_llm_provider(self):
-        from yt_content_analyzer.enrich.summarization import summarize_content
+        from tube_sift.enrich.summarization import summarize_content
 
         cfg = _make_cfg(LLM_PROVIDER=None)
         items = _sample_items(10)
         assert summarize_content(items, "vid1", "comments", cfg) == []
 
     def test_with_mocked_llm(self):
-        from yt_content_analyzer.enrich.summarization import summarize_content
+        from tube_sift.enrich.summarization import summarize_content
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         items = _sample_items(5)
@@ -532,7 +532,7 @@ class TestSummarization:
         resp_data = {"choices": [{"message": {"content": llm_response}}]}
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             results = summarize_content(items, "vid1", "comments", cfg)
 
         assert len(results) == 1
@@ -550,13 +550,13 @@ class TestSummarization:
         assert results[0]["ITEM_COUNT_ANALYZED"] == 5
 
     def test_empty_input(self):
-        from yt_content_analyzer.enrich.summarization import summarize_content
+        from tube_sift.enrich.summarization import summarize_content
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         assert summarize_content([], "vid1", "comments", cfg) == []
 
     def test_sampling_respects_max_items(self):
-        from yt_content_analyzer.enrich.summarization import summarize_content
+        from tube_sift.enrich.summarization import summarize_content
 
         cfg = _make_cfg(
             LLM_PROVIDER="local",
@@ -573,7 +573,7 @@ class TestSummarization:
         resp_data = {"choices": [{"message": {"content": llm_response}}]}
         mock_resp = _mock_urlopen_response(resp_data)
 
-        with patch("yt_content_analyzer.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
+        with patch("tube_sift.enrich.llm_client.urllib.request.urlopen", return_value=mock_resp):
             results = summarize_content(items, "vid1", "comments", cfg)
 
         assert len(results) == 1
@@ -581,13 +581,13 @@ class TestSummarization:
         assert results[0]["ITEM_COUNT_ANALYZED"] <= 50
 
     def test_llm_failure_returns_empty(self):
-        from yt_content_analyzer.enrich.summarization import summarize_content
+        from tube_sift.enrich.summarization import summarize_content
 
         cfg = _make_cfg(LLM_PROVIDER="local", LLM_ENDPOINT="http://localhost:1234/v1")
         items = _sample_items(5)
 
         with patch(
-            "yt_content_analyzer.enrich.llm_client.urllib.request.urlopen",
+            "tube_sift.enrich.llm_client.urllib.request.urlopen",
             side_effect=RuntimeError("connection refused"),
         ):
             results = summarize_content(items, "vid1", "comments", cfg)
@@ -601,13 +601,13 @@ class TestSummarization:
 
 class TestReadJsonl:
     def test_read_jsonl_missing_file(self, tmp_path):
-        from yt_content_analyzer.utils.io import read_jsonl
+        from tube_sift.utils.io import read_jsonl
 
         result = read_jsonl(tmp_path / "nonexistent.jsonl")
         assert result == []
 
     def test_read_jsonl_roundtrip(self, tmp_path):
-        from yt_content_analyzer.utils.io import read_jsonl, write_jsonl
+        from tube_sift.utils.io import read_jsonl, write_jsonl
 
         path = tmp_path / "test.jsonl"
         rows = [{"a": 1, "b": "hello"}, {"a": 2, "b": "world"}]

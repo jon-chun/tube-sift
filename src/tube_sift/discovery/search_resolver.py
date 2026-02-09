@@ -8,54 +8,27 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def _normalize_channel_url(channel: str) -> str:
-    """Normalize a channel handle, ID, or URL to a full /videos URL.
-
-    Accepts:
-      - ``@handle`` (e.g. ``@engineerprompt``)
-      - ``UC...`` channel IDs
-      - Full URLs (``https://www.youtube.com/@handle``)
-    """
-    channel = channel.strip()
-
-    if channel.startswith(("https://", "http://")):
-        url = channel.rstrip("/")
-        if not url.endswith("/videos"):
-            url += "/videos"
-        return url
-
-    if channel.startswith("@"):
-        return f"https://www.youtube.com/{channel}/videos"
-
-    if channel.startswith("UC"):
-        return f"https://www.youtube.com/channel/{channel}/videos"
-
-    # Assume it's a handle without @
-    return f"https://www.youtube.com/@{channel}/videos"
-
-
-def resolve_channel_videos(
-    channel: str,
+def resolve_search_videos(
+    term: str,
     max_videos: int,
     cfg: Any,
 ) -> list[dict[str, str]]:
-    """Resolve the latest *max_videos* video IDs from a YouTube channel.
+    """Search YouTube for videos matching *term* using yt-dlp ``ytsearch``.
 
-    Uses yt-dlp's ``extract_flat`` mode to list videos on the channel page
-    without downloading them.
+    Uses ``extract_flat`` mode so no actual downloads happen.
 
-    Returns a list of dicts: ``{"VIDEO_URL": ..., "VIDEO_ID": ..., "TITLE": ...}``.
+    Returns a list of dicts: ``{"VIDEO_URL": ..., "VIDEO_ID": ..., "TITLE": ..., "SEARCH_TERM": term}``.
     """
     try:
         import yt_dlp  # type: ignore[import-untyped]
     except ImportError:
         raise RuntimeError(
-            "yt-dlp is required for subscription mode. "
-            "Install with: pip install yt-content-analyzer[scrape]"
+            "yt-dlp is required for search-term discovery. "
+            "Install with: pip install tube-sift[scrape]"
         )
 
-    channel_url = _normalize_channel_url(channel)
-    logger.info("Resolving videos from %s (max %d)", channel_url, max_videos)
+    search_url = f"ytsearch{max_videos}:{term}"
+    logger.info("Searching YouTube for %r (max %d videos)", term, max_videos)
 
     max_retries = getattr(cfg, "MAX_RETRY_SCRAPE", 3)
     backoff_base = getattr(cfg, "BACKOFF_BASE_SECONDS", 2.0)
@@ -65,14 +38,14 @@ def resolve_channel_videos(
         "quiet": True,
         "no_warnings": True,
         "extract_flat": True,
-        "playlistend": max_videos,
     }
 
+    info: dict | None = None
     last_err: Exception | None = None
     for attempt in range(1, max_retries + 1):
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(channel_url, download=False)
+                info = ydl.extract_info(search_url, download=False)
             break
         except Exception as exc:
             last_err = exc
@@ -80,14 +53,14 @@ def resolve_channel_videos(
                 delay = min(backoff_base * (2 ** (attempt - 1)), backoff_max)
                 jitter = random.uniform(0, delay * 0.25)
                 logger.warning(
-                    "yt-dlp attempt %d/%d failed for %s: %s — retrying in %.1fs",
-                    attempt, max_retries, channel_url, exc, delay + jitter,
+                    "yt-dlp search attempt %d/%d failed for %r: %s — retrying in %.1fs",
+                    attempt, max_retries, term, exc, delay + jitter,
                 )
                 time.sleep(delay + jitter)
             else:
                 logger.error(
-                    "yt-dlp exhausted %d retries for %s: %s",
-                    max_retries, channel_url, exc,
+                    "yt-dlp exhausted %d retries for search %r: %s",
+                    max_retries, term, exc,
                 )
                 raise
 
@@ -106,7 +79,8 @@ def resolve_channel_videos(
                 "VIDEO_URL": f"https://www.youtube.com/watch?v={vid_id}",
                 "VIDEO_ID": vid_id,
                 "TITLE": title,
+                "SEARCH_TERM": term,
             })
 
-    logger.info("Resolved %d videos from %s", len(results), channel)
+    logger.info("Search %r resolved %d videos", term, len(results))
     return results

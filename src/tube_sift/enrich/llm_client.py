@@ -34,7 +34,7 @@ def _resolve_base_url(provider: str, endpoint: str | None) -> str:
 def _post_json(url: str, payload: dict, headers: dict, timeout: int) -> dict[str, Any]:
     """POST JSON and return parsed response dict."""
     body = json.dumps(payload).encode("utf-8")
-    headers.setdefault("User-Agent", "yt-content-analyzer")
+    headers.setdefault("User-Agent", "tube-sift")
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         result: dict[str, Any] = json.loads(resp.read().decode("utf-8"))

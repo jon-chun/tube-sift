@@ -42,7 +42,7 @@ def get_logger() -> logging.Logger:
         DeprecationWarning,
         stacklevel=2,
     )
-    return logging.getLogger("yt_content_analyzer")
+    return logging.getLogger("tube_sift")
 
 
 def setup_file_handler(logger: logging.Logger, log_dir: Path) -> None:
@@ -65,11 +65,11 @@ def setup_file_handler(logger: logging.Logger, log_dir: Path) -> None:
 
 def configure_file_logging(log_dir: Path) -> None:
     """Backward-compatible shim — delegates to :func:`setup_file_handler`."""
-    setup_file_handler(logging.getLogger("yt_content_analyzer"), log_dir)
+    setup_file_handler(logging.getLogger("tube_sift"), log_dir)
 
 
 def setup_cli_logging(*, verbosity: int = 0) -> None:
-    """Attach a RichHandler to the ``yt_content_analyzer`` logger.
+    """Attach a RichHandler to the ``tube_sift`` logger.
 
     Called from CLI entry-points only.
 
@@ -83,7 +83,7 @@ def setup_cli_logging(*, verbosity: int = 0) -> None:
     level_map = {-1: logging.WARNING, 0: logging.INFO}
     level = level_map.get(verbosity, logging.DEBUG)
 
-    logger = logging.getLogger("yt_content_analyzer")
+    logger = logging.getLogger("tube_sift")
     logger.setLevel(logging.DEBUG)
 
     # Avoid duplicate Rich handlers on repeated calls

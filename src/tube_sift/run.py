@@ -194,7 +194,7 @@ def run_all(
     ckpt.init_if_missing()
 
     # file logging
-    setup_file_handler(logging.getLogger("yt_content_analyzer"), out_dir / "logs")
+    setup_file_handler(logging.getLogger("tube_sift"), out_dir / "logs")
 
     logger.info("Run started", extra={"RUN_ID": run_id, "OUTPUT_DIR": str(out_dir)})
 

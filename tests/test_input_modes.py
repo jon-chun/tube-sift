@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.run import extract_video_id, _video_out_dir
+from tube_sift.config import Settings
+from tube_sift.run import extract_video_id, _video_out_dir
 
 
 # ---------------------------------------------------------------------------
@@ -65,12 +65,12 @@ class TestVideoOutDir:
 class TestChannelCLI:
     def test_channel_flag_constructs_subscriptions(self, tmp_path):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         cfg_file = tmp_path / "config.yml"
         cfg_file.write_text("VIDEO_URL:\n", encoding="utf-8")
 
-        with patch("yt_content_analyzer.run.run_all") as mock_run:
+        with patch("tube_sift.run.run_all") as mock_run:
             mock_run.return_value = MagicMock(
                 run_id="test", output_dir=tmp_path, videos_processed=0,
                 comments_collected=0, transcript_chunks=0, failures=[],
@@ -91,12 +91,12 @@ class TestChannelCLI:
 
     def test_channel_flag_single(self, tmp_path):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         cfg_file = tmp_path / "config.yml"
         cfg_file.write_text("VIDEO_URL:\n", encoding="utf-8")
 
-        with patch("yt_content_analyzer.run.run_all") as mock_run:
+        with patch("tube_sift.run.run_all") as mock_run:
             mock_run.return_value = MagicMock(
                 run_id="test", output_dir=tmp_path, videos_processed=0,
                 comments_collected=0, transcript_chunks=0, failures=[],
@@ -138,7 +138,7 @@ class TestSearchResolver:
 
         cfg = Settings()
         import importlib
-        import yt_content_analyzer.discovery.search_resolver as mod
+        import tube_sift.discovery.search_resolver as mod
         importlib.reload(mod)
         result = mod.resolve_search_videos("Claude CoWork", 5, cfg)
 
@@ -157,7 +157,7 @@ class TestSearchResolver:
 
         cfg = Settings()
         import importlib
-        import yt_content_analyzer.discovery.search_resolver as mod
+        import tube_sift.discovery.search_resolver as mod
         importlib.reload(mod)
         result = mod.resolve_search_videos("nonexistent_xyz_query", 5, cfg)
 
@@ -178,7 +178,7 @@ class TestSearchResolver:
 
         cfg = Settings()
         import importlib
-        import yt_content_analyzer.discovery.search_resolver as mod
+        import tube_sift.discovery.search_resolver as mod
         importlib.reload(mod)
         result = mod.resolve_search_videos("test", 5, cfg)
 

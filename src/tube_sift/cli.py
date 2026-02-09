@@ -17,7 +17,7 @@ from .utils.logger import setup_cli_logging
 @click.option("-q", "--quiet", is_flag=True, default=False, help="Suppress all but warnings.")
 @click.pass_context
 def main(ctx: click.Context, verbose: int, quiet: bool) -> None:
-    """yt-content-analyzer CLI"""
+    """TubeSift CLI"""
     ctx.ensure_object(dict)
     verbosity = -1 if quiet else verbose
     ctx.obj["verbosity"] = verbosity

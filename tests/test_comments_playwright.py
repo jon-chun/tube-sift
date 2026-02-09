@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from yt_content_analyzer.collectors.comments_playwright_ui import (
+from tube_sift.collectors.comments_playwright_ui import (
     _extract_comments_from_api_response,
     _extract_text_from_runs,
     _parse_comment_entity_payload,
@@ -12,8 +12,8 @@ from yt_content_analyzer.collectors.comments_playwright_ui import (
     _parse_relative_time,
     _parse_vote_count,
 )
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.parse.normalize_comments import normalize_comments
+from tube_sift.config import Settings
+from tube_sift.parse.normalize_comments import normalize_comments
 
 
 def _make_cfg(**overrides) -> Settings:
@@ -469,7 +469,7 @@ class TestCollectEmpty:
         with patch(
             "playwright.sync_api.sync_playwright", mock_sync_pw
         ):
-            from yt_content_analyzer.collectors.comments_playwright_ui import (
+            from tube_sift.collectors.comments_playwright_ui import (
                 collect_comments_playwright_ui,
             )
 
@@ -486,11 +486,11 @@ class TestCollectEmpty:
 # ---------------------------------------------------------------------------
 
 class TestFallbackChain:
-    @patch("yt_content_analyzer.run.write_jsonl")
-    @patch("yt_content_analyzer.run.read_jsonl", return_value=[])
+    @patch("tube_sift.run.write_jsonl")
+    @patch("tube_sift.run.read_jsonl", return_value=[])
     def test_playwright_fails_ytdlp_succeeds(self, mock_read, mock_write):
         """When Playwright raises, yt-dlp fallback should be used."""
-        from yt_content_analyzer.run import _collect_and_process_comments
+        from tube_sift.run import _collect_and_process_comments
 
         cfg = _make_cfg(
             VIDEO_URL="https://www.youtube.com/watch?v=test12345",
@@ -518,13 +518,13 @@ class TestFallbackChain:
         mock_ytdlp_mod.collect_comments_ytdlp.return_value = fake_ytdlp_comments
 
         import sys
-        from yt_content_analyzer.models import RunResult
+        from tube_sift.models import RunResult
         result = RunResult(run_id="test", output_dir=out_dir)
         failures_dir = out_dir / "failures"
 
         with patch.dict(sys.modules, {
-            "yt_content_analyzer.collectors.comments_playwright_ui": mock_pw_mod,
-            "yt_content_analyzer.collectors.comments_ytdlp": mock_ytdlp_mod,
+            "tube_sift.collectors.comments_playwright_ui": mock_pw_mod,
+            "tube_sift.collectors.comments_ytdlp": mock_ytdlp_mod,
         }):
             _collect_and_process_comments(
                 cfg, cfg.VIDEO_URL, "test12345", out_dir, ckpt, "test12345",
@@ -536,12 +536,12 @@ class TestFallbackChain:
 
 
 class TestSortModeLoop:
-    @patch("yt_content_analyzer.run.write_jsonl")
-    @patch("yt_content_analyzer.run.read_jsonl", return_value=[])
+    @patch("tube_sift.run.write_jsonl")
+    @patch("tube_sift.run.read_jsonl", return_value=[])
     def test_two_sort_modes_produces_files(self, mock_read, mock_write):
         """Two sort modes should produce two per-mode files + merged."""
-        from yt_content_analyzer.run import _collect_and_process_comments
-        from yt_content_analyzer.state.checkpoint import CheckpointStore
+        from tube_sift.run import _collect_and_process_comments
+        from tube_sift.state.checkpoint import CheckpointStore
 
         cfg = _make_cfg(
             VIDEO_URL="https://www.youtube.com/watch?v=test12345",
@@ -573,14 +573,14 @@ class TestSortModeLoop:
                 return top_comments
             return newest_comments
 
-        from yt_content_analyzer.models import RunResult
+        from tube_sift.models import RunResult
         result = RunResult(run_id="test", output_dir=out_dir)
         failures_dir = out_dir / "failures"
 
         with patch.dict(
             "sys.modules",
             {
-                "yt_content_analyzer.collectors.comments_playwright_ui": MagicMock(
+                "tube_sift.collectors.comments_playwright_ui": MagicMock(
                     collect_comments_playwright_ui=fake_playwright
                 ),
             },

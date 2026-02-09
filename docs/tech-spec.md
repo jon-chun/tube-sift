@@ -1,4 +1,4 @@
-# yt-content-analyzer — Tech Spec (v0.2)
+# tube-sift — Tech Spec (v0.2)
 _Adds transcript download/extraction/analysis as a first-class asset type alongside comments._
 
 ## 1) Implementation ideas incorporated from the older design
@@ -147,7 +147,7 @@ Stages:
 
 ### 5.3 Repo layout (revised)
 ```
-yt_content_analyzer/
+tube_sift/
   __init__.py
   cli.py
   config.py

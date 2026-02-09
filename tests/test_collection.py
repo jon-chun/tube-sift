@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.run import extract_video_id
-from yt_content_analyzer.parse.normalize_transcripts import normalize_transcripts
-from yt_content_analyzer.parse.normalize_comments import normalize_comments
-from yt_content_analyzer.parse.chunk_transcripts import chunk_transcripts
+from tube_sift.config import Settings
+from tube_sift.run import extract_video_id
+from tube_sift.parse.normalize_transcripts import normalize_transcripts
+from tube_sift.parse.normalize_comments import normalize_comments
+from tube_sift.parse.chunk_transcripts import chunk_transcripts
 
 
 # ---------------------------------------------------------------------------

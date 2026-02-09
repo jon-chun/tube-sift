@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-yt-content-analyzer is a scrape-first YouTube comments + transcripts collection and analysis tool for moderate academic research scale (10–500 videos). Given a URL, search terms, or channel subscriptions, it collects comments (Top/Newest sort), transcripts (manual preferred, auto fallback), enriches via NLP/LLM pipelines, and produces JSONL datasets plus Markdown reports. The single-video pipeline, subscription-based multi-video pipeline, and search-term discovery are all functional end-to-end.
+TubeSift (`tube-sift`) is a scrape-first YouTube comments + transcripts collection and analysis tool for moderate academic research scale (10–500 videos). Given a URL, search terms, or channel subscriptions, it collects comments (Top/Newest sort), transcripts (manual preferred, auto fallback), enriches via NLP/LLM pipelines, and produces JSONL datasets plus Markdown reports. The single-video pipeline, subscription-based multi-video pipeline, and search-term discovery are all functional end-to-end.
 
 ## Commands
 
@@ -32,22 +32,22 @@ ruff check --fix src/ tests/
 mypy src/
 
 # CLI
-ytca preflight --config config.yml
-ytca run-all --config config.yml --video-url "https://www.youtube.com/watch?v=VIDEO_ID"
-ytca run-all --config config.yml --video-url "4jQChe0rg1c"   # bare video ID
-ytca run-all --resume 20260101T120000Z
+tube-sift preflight --config config.yml
+tube-sift run-all --config config.yml --video-url "https://www.youtube.com/watch?v=VIDEO_ID"
+tube-sift run-all --config config.yml --video-url "4jQChe0rg1c"   # bare video ID
+tube-sift run-all --resume 20260101T120000Z
 
 # Subscription mode (fetch latest videos from channels)
-ytca run-all --config config.yml --subscriptions
-ytca run-all --config config.yml --channel "@engineerprompt" --channel "@firaborova"
+tube-sift run-all --config config.yml --subscriptions
+tube-sift run-all --config config.yml --channel "@engineerprompt" --channel "@firaborova"
 
 # Search term discovery
-ytca run-all --config config.yml --terms "Claude CoWork" --terms "AI agents"
+tube-sift run-all --config config.yml --terms "Claude CoWork" --terms "AI agents"
 ```
 
 ## Architecture
 
-**Package layout:** `src/yt_content_analyzer/` — hatchling build, entry point `ytca = yt_content_analyzer.cli:main`.
+**Package layout:** `src/tube_sift/` — hatchling build, entry point `tube-sift = tube_sift.cli:main`.
 
 **Pipeline stages** (checkpointed per `(VIDEO_ID, STAGE)`):
 1. **Preflight** (`preflight/`) — multi-level config validation, endpoint probes, fail-fast
@@ -72,7 +72,7 @@ ytca run-all --config config.yml --terms "Claude CoWork" --terms "AI agents"
 
 **Exception hierarchy:**
 ```
-YTCAError (base)
+TubeSiftError (base)
 ├── ConfigError        — invalid/inconsistent config
 ├── PreflightError     — preflight failed (carries .results list)
 ├── CollectionError    — comment/transcript collection failure

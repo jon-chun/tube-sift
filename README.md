@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="TubeSift" width="480"/>
+  <img src="images/logo_tube-sift.jpeg" alt="TubeSift" width="480"/>
 </p>
 
 <p align="center">
@@ -7,12 +7,12 @@
 </p>
 
 <p align="center">
-  <code>pip install yt-content-analyzer[scrape,nlp]</code>
+  <code>pip install tube-sift[scrape,nlp]</code>
 </p>
 
 ---
 
-TubeSift (`yt-content-analyzer`) discovers YouTube videos by URL, channel, or search term, collects their comments and transcripts, and enriches the text through configurable NLP and LLM pipelines. It produces structured JSONL datasets ready for pandas, notebooks, or downstream analysis.
+TubeSift (`tube-sift`) discovers YouTube videos by URL, channel, or search term, collects their comments and transcripts, and enriches the text through configurable NLP and LLM pipelines. It produces structured JSONL datasets ready for pandas, notebooks, or downstream analysis.
 
 Built for academic researchers working at moderate scale (10--500 videos), not massive dataset harvesting.
 
@@ -35,7 +35,7 @@ Built for academic researchers working at moderate scale (10--500 videos), not m
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/jon-chun/yt-content-analyzer && cd yt-content-analyzer
+git clone https://github.com/jon-chun/tube-sift && cd tube-sift
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,scrape,reports,nlp]"
 playwright install
@@ -47,10 +47,10 @@ cp config.example.yml config.yml          # edit as needed
 cp .env.example .env                      # add your keys
 
 # 4. Validate
-ytca preflight --config config.yml
+tube-sift preflight --config config.yml
 
 # 5. Run
-ytca run-all --config config.yml --video-url "dQw4w9WgXcQ"
+tube-sift run-all --config config.yml --video-url "dQw4w9WgXcQ"
 ```
 
 Your results appear in `runs/<RUN_ID>/videos/<VIDEO_ID>/` with comments, transcripts, and enrichment data as JSONL files.
@@ -87,8 +87,8 @@ Your results appear in `runs/<RUN_ID>/videos/<VIDEO_ID>/` with comments, transcr
 ### From source (recommended)
 
 ```bash
-git clone https://github.com/jon-chun/yt-content-analyzer
-cd yt-content-analyzer
+git clone https://github.com/jon-chun/tube-sift
+cd tube-sift
 python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -e ".[dev,scrape,reports,nlp]"
@@ -98,7 +98,7 @@ playwright install
 ### From PyPI (once published)
 
 ```bash
-pip install yt-content-analyzer[scrape,reports,nlp]
+pip install tube-sift[scrape,reports,nlp]
 playwright install
 ```
 
@@ -190,7 +190,7 @@ API keys are optional. Without them, TubeSift still collects comments and transc
 ### Step 3: Validate your setup
 
 ```bash
-ytca preflight --config config.yml
+tube-sift preflight --config config.yml
 ```
 
 Preflight validates config invariants (input mutual exclusivity, subscription caps), checks environment readiness, probes remote endpoints, and verifies transcript provider availability. Results are printed to the terminal and saved as a report in the run directory.
@@ -207,10 +207,10 @@ Pass a full YouTube URL or a bare 11-character video ID:
 
 ```bash
 # Full URL
-ytca run-all --config config.yml --video-url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+tube-sift run-all --config config.yml --video-url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # Bare video ID (auto-expanded to full URL)
-ytca run-all --config config.yml --video-url "dQw4w9WgXcQ"
+tube-sift run-all --config config.yml --video-url "dQw4w9WgXcQ"
 ```
 
 Or set `VIDEO_URL` in your config file and omit the flag.
@@ -222,7 +222,7 @@ Analyze the latest videos from one or more YouTube channels.
 **Quick way** -- use the `--channel` CLI flag (repeatable):
 
 ```bash
-ytca run-all --config config.yml --channel "@engineerprompt" --channel "@firaborova"
+tube-sift run-all --config config.yml --channel "@engineerprompt" --channel "@firaborova"
 ```
 
 **Config way** -- define channels in YAML and use `--subscriptions`:
@@ -239,7 +239,7 @@ MAX_SUB_VIDEOS: 3                   # global default per channel
 ```
 
 ```bash
-ytca run-all --config config.yml --subscriptions
+tube-sift run-all --config config.yml --subscriptions
 ```
 
 The resolver uses yt-dlp to fetch the latest N videos from each channel. Discovered videos are logged to `discovery/discovered_videos.jsonl`. Channel handles (`@handle`), channel IDs (`UC...`), and full URLs are all accepted.
@@ -250,10 +250,10 @@ Discover videos by keyword search:
 
 ```bash
 # Single term
-ytca run-all --config config.yml --terms "Claude AI tutorial"
+tube-sift run-all --config config.yml --terms "Claude AI tutorial"
 
 # Multiple terms (repeatable)
-ytca run-all --config config.yml --terms "AI agents 2026" --terms "robotics policy"
+tube-sift run-all --config config.yml --terms "AI agents 2026" --terms "robotics policy"
 ```
 
 Or set `SEARCH_TERMS` in your config:
@@ -270,18 +270,18 @@ These flags work with any input mode:
 
 ```bash
 # Limit to top-sorted comments only, max 100
-ytca run-all --config config.yml --video-url "VIDEO_ID" \
+tube-sift run-all --config config.yml --video-url "VIDEO_ID" \
   --sort-modes top --max-comments 100
 
 # Skip transcripts
-ytca run-all --config config.yml --video-url "VIDEO_ID" --no-transcripts
+tube-sift run-all --config config.yml --video-url "VIDEO_ID" --no-transcripts
 
 # Use a specific LLM for enrichment
-ytca run-all --config config.yml --video-url "VIDEO_ID" \
+tube-sift run-all --config config.yml --video-url "VIDEO_ID" \
   --llm-provider xai --llm-model grok-4-1-fast-non-reasoning
 
 # Halt on first error instead of skipping
-ytca run-all --config config.yml --video-url "VIDEO_ID" --on-failure abort
+tube-sift run-all --config config.yml --video-url "VIDEO_ID" --on-failure abort
 ```
 
 ### Resuming an interrupted run
@@ -289,13 +289,13 @@ ytca run-all --config config.yml --video-url "VIDEO_ID" --on-failure abort
 Runs are checkpointed automatically per `(VIDEO_ID, STAGE)`. Resume by RUN_ID:
 
 ```bash
-ytca run-all --resume 20260208T235833Z
+tube-sift run-all --resume 20260208T235833Z
 ```
 
 Resume reloads config from the run's `manifest.json` and skips preflight. Already-completed stages are not re-run. You can optionally override settings:
 
 ```bash
-ytca run-all --resume 20260208T235833Z --config updated_config.yml
+tube-sift run-all --resume 20260208T235833Z --config updated_config.yml
 ```
 
 ### Error handling
@@ -320,14 +320,14 @@ Collection uses a fallback chain (Playwright &rarr; yt-dlp) with exponential bac
 | `-v`, `--verbose` | Increase verbosity (repeat for DEBUG) |
 | `-q`, `--quiet` | Suppress all but warnings |
 
-### `ytca preflight`
+### `tube-sift preflight`
 
 | Flag | Description |
 |------|-------------|
 | `--config` | Path to YAML config file (required) |
 | `--output-dir` | Output directory for preflight report |
 
-### `ytca run-all`
+### `tube-sift run-all`
 
 | Flag | Description |
 |------|-------------|
@@ -468,11 +468,11 @@ for _, row in topics.iterrows():
 The package exports a public API for scripts and notebooks:
 
 ```python
-from yt_content_analyzer import (
+from tube_sift import (
     run_all, run_preflight, extract_video_id,
     Settings, load_settings, resolve_api_key, resolve_pricing,
     RunResult, PreflightResult, CheckpointStore,
-    YTCAError, PreflightError, ConfigError, CollectionError, EnrichmentError,
+    TubeSiftError, PreflightError, ConfigError, CollectionError, EnrichmentError,
 )
 ```
 
@@ -506,7 +506,7 @@ print(f"Processed {result.videos_processed} videos, {result.comments_collected} 
 ### Exception hierarchy
 
 ```
-YTCAError (base)
+TubeSiftError (base)
   +-- ConfigError        # invalid or inconsistent configuration
   +-- PreflightError     # preflight checks failed (carries .results list)
   +-- CollectionError    # comment/transcript collection failure
@@ -553,12 +553,12 @@ Every stage is **checkpointed** per `(VIDEO_ID, STAGE)`. Interrupted runs resume
 ### Package layout
 
 ```
-src/yt_content_analyzer/
-  cli.py                    # Click CLI (ytca command)
+src/tube_sift/
+  cli.py                    # Click CLI (tube-sift command)
   config.py                 # Pydantic Settings model
   run.py                    # Pipeline orchestrator
   models.py                 # RunResult, PreflightResult
-  exceptions.py             # YTCAError hierarchy
+  exceptions.py             # TubeSiftError hierarchy
   preflight/                # Config validation + endpoint probes
   discovery/                # Channel resolver, search resolver
   collectors/               # Comments (Playwright, yt-dlp) + transcripts

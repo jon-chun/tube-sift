@@ -1,4 +1,4 @@
-# yt-content-analyzer example config
+# TubeSift example config
 
 # =============================================================================
 # INPUTS
@@ -8,7 +8,7 @@ VIDEO_URL:
 SEARCH_TERMS: ["AI agents 2026"]
 
 # Subscription mode: fetch latest videos from YouTube channels.
-# Use with: ytca run-all --config config.yml --subscriptions
+# Use with: tube-sift run-all --config config.yml --subscriptions
 # YT_SUBSCRIPTIONS:
 #   - CHANNEL: "@engineerprompt"
 #     MAX_SUB_VIDEOS: 3          # per-channel override (default: MAX_SUB_VIDEOS)

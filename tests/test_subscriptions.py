@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.discovery.channel_resolver import _normalize_channel_url
+from tube_sift.config import Settings
+from tube_sift.discovery.channel_resolver import _normalize_channel_url
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class TestResolveChannelVideosMock:
         cfg = Settings()
         # Need to re-import to pick up the mocked yt_dlp
         import importlib
-        import yt_content_analyzer.discovery.channel_resolver as mod
+        import tube_sift.discovery.channel_resolver as mod
         importlib.reload(mod)
         result = mod.resolve_channel_videos("@testchannel", 3, cfg)
 
@@ -116,7 +116,7 @@ class TestResolveChannelVideosMock:
 
         cfg = Settings()
         import importlib
-        import yt_content_analyzer.discovery.channel_resolver as mod
+        import tube_sift.discovery.channel_resolver as mod
         importlib.reload(mod)
         result = mod.resolve_channel_videos("@testchannel", 3, cfg)
 
@@ -134,7 +134,7 @@ class TestSubscriptionPreflight:
             VIDEO_URL="https://www.youtube.com/watch?v=abc12345678",
             YT_SUBSCRIPTIONS=[{"CHANNEL": "@test"}],
         )
-        from yt_content_analyzer.preflight.checks import run_preflight
+        from tube_sift.preflight.checks import run_preflight
         result = run_preflight(cfg, output_dir=None)
         assert not result.ok
         failed = [r for r in result.results if not r["OK"]]
@@ -144,7 +144,7 @@ class TestSubscriptionPreflight:
         cfg = Settings(
             YT_SUBSCRIPTIONS=[{"CHANNEL": "@test"}],
         )
-        from yt_content_analyzer.preflight.checks import run_preflight
+        from tube_sift.preflight.checks import run_preflight
         result = run_preflight(cfg, output_dir=None)
         assert result.ok
 
@@ -156,7 +156,7 @@ class TestSubscriptionPreflight:
                 {"CHANNEL": "@ch2", "MAX_SUB_VIDEOS": 3},
             ],
         )
-        from yt_content_analyzer.preflight.checks import run_preflight
+        from tube_sift.preflight.checks import run_preflight
         result = run_preflight(cfg, output_dir=None)
         assert not result.ok
         failed = [r for r in result.results if not r["OK"]]
@@ -170,7 +170,7 @@ class TestSubscriptionPreflight:
 class TestSubscriptionCLI:
     def test_subscriptions_flag_requires_config(self):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         runner = CliRunner()
         result = runner.invoke(main, [
@@ -181,7 +181,7 @@ class TestSubscriptionCLI:
 
     def test_subscriptions_flag_no_subs_in_config(self, tmp_path):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         cfg_file = tmp_path / "config.yml"
         cfg_file.write_text("VIDEO_URL:\n", encoding="utf-8")
@@ -196,7 +196,7 @@ class TestSubscriptionCLI:
     def test_subscriptions_flag_clears_video_url(self, tmp_path):
         """When --subscriptions is used, VIDEO_URL and SEARCH_TERMS should be cleared."""
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         cfg_file = tmp_path / "config.yml"
         cfg_file.write_text(
@@ -206,7 +206,7 @@ class TestSubscriptionCLI:
             encoding="utf-8",
         )
 
-        with patch("yt_content_analyzer.run.run_all") as mock_run:
+        with patch("tube_sift.run.run_all") as mock_run:
             mock_run.return_value = MagicMock(
                 run_id="test", output_dir=tmp_path, videos_processed=0,
                 comments_collected=0, transcript_chunks=0, failures=[],

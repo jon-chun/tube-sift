@@ -1,4 +1,4 @@
-# yt-content-analyzer — PRD (v0.2)
+# tube-sift — PRD (v0.2)
 _Adds YouTube transcript download/extraction/analysis alongside comment scraping._
 
 ## Clarifications locked in
@@ -9,7 +9,7 @@ _Adds YouTube transcript download/extraction/analysis alongside comment scraping
 ---
 
 ## 1) Overview
-**Product:** `yt-content-analyzer` (Python OSS library + CLI)  
+**Product:** `tube-sift` (Python OSS library + CLI)  
 **Primary value:** Scrape-first YouTube **comments + transcripts** for a given URL or a set of search terms → top videos, then produce:
 - **Machine-friendly datasets:** JSONL + CSV
 - **Human-readable reports:** Markdown (`reports/`), plus optional HTML report assets
@@ -110,7 +110,7 @@ _Adds YouTube transcript download/extraction/analysis alongside comment scraping
 ---
 
 ## 6) Deliverables
-- GitHub repo `yt-content-analyzer`
+- GitHub repo `tube-sift`
 - CLI + Python API
 - Example config files with ALL_CAPS keys
 - Documentation: quickstart, config guide, troubleshooting, safe scraping guidance
@@ -156,11 +156,11 @@ In the manifest, record `FAILED_VIDEOS` with reasons. In reports, include a "Col
 
 **Gap:** A 500-video run can take hours. There is no way to preview what will be collected (how many videos matched, estimated comment counts, transcript availability) before committing to a full scrape.
 
-**Solution:** Add a `ytca dry-run --config config.yml --terms "..."` CLI command that:
+**Solution:** Add a `tube-sift dry-run --config config.yml --terms "..."` CLI command that:
 1. Runs the discovery stage only (resolve search terms, apply filters).
 2. For each discovered video, fetch basic metadata (title, view count, comment count estimate, caption availability).
 3. Output a summary: total videos found, estimated comments, transcript availability ratio, estimated run time.
-4. Write the plan to `runs/<RUN_ID>/dry-run-plan.json` so the user can review before running `ytca run-all --plan runs/<RUN_ID>/dry-run-plan.json`.
+4. Write the plan to `runs/<RUN_ID>/dry-run-plan.json` so the user can review before running `tube-sift run-all --plan runs/<RUN_ID>/dry-run-plan.json`.
 
 ### 7.5 Incremental / differential runs [Usefulness: 80]
 
@@ -197,19 +197,19 @@ Add `PROGRESS_MODE` config key: `rich` (default, interactive terminal), `plain` 
 
 **Gap:** Section 6 lists "CLI + Python API" as a deliverable, but only CLI commands are defined. There is no specified public API for users who want to call the tool from notebooks or scripts.
 
-**Solution:** Define a minimal public API in `yt_content_analyzer`:
+**Solution:** Define a minimal public API in `tube_sift`:
 ```python
-from yt_content_analyzer import run_all, load_settings
-from yt_content_analyzer.config import Settings
+from tube_sift import run_all, load_settings
+from tube_sift.config import Settings
 
 cfg = load_settings("config.yml")
 run_all(cfg)  # already exists
 
 # Add granular entry points:
-from yt_content_analyzer.discovery import discover_videos
-from yt_content_analyzer.collectors import collect_video
-from yt_content_analyzer.enrich import enrich_run
-from yt_content_analyzer.reporting import generate_reports
+from tube_sift.discovery import discover_videos
+from tube_sift.collectors import collect_video
+from tube_sift.enrich import enrich_run
+from tube_sift.reporting import generate_reports
 
 videos = discover_videos(cfg)
 for v in videos:
@@ -232,7 +232,7 @@ Document these entry points in a `docs/python-api.md` guide with notebook exampl
 
 **Gap:** Each run is fully isolated. Researchers studying topic evolution or sentiment trends over time have no built-in way to compare results across runs.
 
-**Solution:** Add a `ytca compare --runs <RUN_ID_1> <RUN_ID_2> [...]` CLI command that:
+**Solution:** Add a `tube-sift compare --runs <RUN_ID_1> <RUN_ID_2> [...]` CLI command that:
 1. Loads topic and sentiment outputs from each run.
 2. Produces a comparison report: new/disappeared topics, sentiment polarity shifts, comment volume changes, top differentiating keywords.
 3. Outputs to `reports/compare_<RUN_IDs>.md` and a structured `compare.jsonl`.

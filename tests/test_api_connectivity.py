@@ -16,7 +16,7 @@ import urllib.request
 
 import pytest
 
-from yt_content_analyzer.enrich.llm_client import (
+from tube_sift.enrich.llm_client import (
     PROVIDER_BASE_URLS,
 )
 
@@ -50,7 +50,7 @@ def _has_key(env_key: str) -> bool:
 
 def _post_json(url: str, payload: dict, headers: dict, timeout: int = 30) -> dict:
     body = json.dumps(payload).encode("utf-8")
-    headers.setdefault("User-Agent", "yt-content-analyzer/test")
+    headers.setdefault("User-Agent", "tube-sift/test")
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))

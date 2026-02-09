@@ -8,10 +8,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yt_content_analyzer.config import Settings
-from yt_content_analyzer.utils.io import read_jsonl, write_failure
-from yt_content_analyzer.utils.logger import JsonLineFormatter, configure_file_logging
-from yt_content_analyzer.state.checkpoint import CheckpointStore
+from tube_sift.config import Settings
+from tube_sift.utils.io import read_jsonl, write_failure
+from tube_sift.utils.logger import JsonLineFormatter, configure_file_logging
+from tube_sift.state.checkpoint import CheckpointStore
 
 
 # ---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ class TestCollectorRetry:
 
         import sys
         with patch.dict(sys.modules, {"yt_dlp": mock_module}):
-            from yt_content_analyzer.collectors.comments_ytdlp import collect_comments_ytdlp
+            from tube_sift.collectors.comments_ytdlp import collect_comments_ytdlp
             result = collect_comments_ytdlp("https://www.youtube.com/watch?v=abc123", cfg)
 
         assert call_count == 2
@@ -157,7 +157,7 @@ class TestCollectorRetry:
 
         import sys
         with patch.dict(sys.modules, {"yt_dlp": mock_module}):
-            from yt_content_analyzer.collectors.comments_ytdlp import collect_comments_ytdlp
+            from tube_sift.collectors.comments_ytdlp import collect_comments_ytdlp
             with pytest.raises(RuntimeError, match="persistent error"):
                 collect_comments_ytdlp("https://www.youtube.com/watch?v=abc123", cfg)
 
@@ -183,7 +183,7 @@ class TestCollectorRetry:
 
         import sys
         with patch.dict(sys.modules, {"yt_dlp": mock_module}):
-            from yt_content_analyzer.collectors.transcript_ytdlp import collect_transcript_ytdlp
+            from tube_sift.collectors.transcript_ytdlp import collect_transcript_ytdlp
             result = collect_transcript_ytdlp("https://www.youtube.com/watch?v=abc123", cfg)
 
         assert call_count == 2
@@ -200,10 +200,10 @@ class TestEnrichErrorHandling:
         items = [{"TEXT": "hello world"}]
 
         with patch(
-            "yt_content_analyzer.enrich.topics_llm.chat_completion",
+            "tube_sift.enrich.topics_llm.chat_completion",
             side_effect=ConnectionError("connection refused"),
         ):
-            from yt_content_analyzer.enrich.topics_llm import extract_topics_llm
+            from tube_sift.enrich.topics_llm import extract_topics_llm
             result = extract_topics_llm(items, "vid1", "comments", cfg)
 
         assert result == []
@@ -213,10 +213,10 @@ class TestEnrichErrorHandling:
         items = [{"TEXT": "hello world", "COMMENT_ID": "c1"}]
 
         with patch(
-            "yt_content_analyzer.enrich.sentiment.chat_completion",
+            "tube_sift.enrich.sentiment.chat_completion",
             side_effect=ConnectionError("connection refused"),
         ):
-            from yt_content_analyzer.enrich.sentiment import analyze_sentiment_llm
+            from tube_sift.enrich.sentiment import analyze_sentiment_llm
             result = analyze_sentiment_llm(items, "vid1", "comments", cfg)
 
         assert result == []
@@ -226,10 +226,10 @@ class TestEnrichErrorHandling:
         items = [{"TEXT": "hello world"}]
 
         with patch(
-            "yt_content_analyzer.enrich.triples.chat_completion",
+            "tube_sift.enrich.triples.chat_completion",
             side_effect=ConnectionError("connection refused"),
         ):
-            from yt_content_analyzer.enrich.triples import extract_triples
+            from tube_sift.enrich.triples import extract_triples
             result = extract_triples(items, "vid1", "comments", cfg)
 
         assert result == []
@@ -289,8 +289,8 @@ class TestJsonLineFormatter:
 
 class TestConfigureFileLogging:
     def setup_method(self):
-        # Clean up file handlers from the yt_content_analyzer logger between tests
-        _logger = logging.getLogger("yt_content_analyzer")
+        # Clean up file handlers from the tube_sift logger between tests
+        _logger = logging.getLogger("tube_sift")
         for h in list(_logger.handlers):
             if isinstance(h, logging.FileHandler):
                 h.close()
@@ -300,7 +300,7 @@ class TestConfigureFileLogging:
         log_dir = tmp_path / "logs"
         configure_file_logging(log_dir)
         # Write a log entry to force file creation
-        _logger = logging.getLogger("yt_content_analyzer")
+        _logger = logging.getLogger("tube_sift")
         _logger.setLevel(logging.DEBUG)
         _logger.debug("test message")
         # Flush handlers
@@ -314,7 +314,7 @@ class TestConfigureFileLogging:
         configure_file_logging(log_dir)
         configure_file_logging(log_dir)
 
-        _logger = logging.getLogger("yt_content_analyzer")
+        _logger = logging.getLogger("tube_sift")
         file_handlers = [
             h for h in _logger.handlers
             if isinstance(h, logging.FileHandler)
@@ -323,7 +323,7 @@ class TestConfigureFileLogging:
 
     def teardown_method(self):
         # Clean up file handlers
-        _logger = logging.getLogger("yt_content_analyzer")
+        _logger = logging.getLogger("tube_sift")
         for h in list(_logger.handlers):
             if isinstance(h, logging.FileHandler):
                 h.close()
@@ -406,7 +406,7 @@ class TestCheckpointFailedStatus:
 class TestResumeCLI:
     def test_missing_run_dir_errors(self, tmp_path):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path):
@@ -416,7 +416,7 @@ class TestResumeCLI:
 
     def test_loads_manifest_when_no_config(self, tmp_path):
         from click.testing import CliRunner
-        from yt_content_analyzer.cli import main
+        from tube_sift.cli import main
 
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -429,8 +429,8 @@ class TestResumeCLI:
             )
 
             # Mock run_all to capture the call (lazy-imported in run_all_cmd)
-            with patch("yt_content_analyzer.run.run_all") as mock_run_all:
-                from yt_content_analyzer.models import RunResult
+            with patch("tube_sift.run.run_all") as mock_run_all:
+                from tube_sift.models import RunResult
                 mock_run_all.return_value = RunResult(
                     run_id="test_run", output_dir=run_dir,
                 )

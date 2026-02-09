@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 
-class YTCAError(Exception):
-    """Base exception for yt-content-analyzer."""
+class TubeSiftError(Exception):
+    """Base exception for TubeSift."""
 
 
-class ConfigError(YTCAError):
+class ConfigError(TubeSiftError):
     """Invalid or inconsistent configuration."""
 
 
-class PreflightError(YTCAError):
+class PreflightError(TubeSiftError):
     """Preflight checks failed."""
 
     def __init__(self, results: list[dict]) -> None:
@@ -19,9 +19,9 @@ class PreflightError(YTCAError):
         super().__init__(f"Preflight failed: {names}")
 
 
-class CollectionError(YTCAError):
+class CollectionError(TubeSiftError):
     """Error during comment/transcript collection."""
 
 
-class EnrichmentError(YTCAError):
+class EnrichmentError(TubeSiftError):
     """Error during enrichment pipeline."""

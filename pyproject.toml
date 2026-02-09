@@ -3,7 +3,7 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "yt-content-analyzer"
+name = "tube-sift"
 version = "0.3.0"
 description = "Scrape-first YouTube comments + transcripts collection and analysis with resumable runs."
 readme = "README.md"
@@ -58,19 +58,19 @@ kg = [
 ]
 
 [project.scripts]
-ytca = "yt_content_analyzer.cli:main"
+tube-sift = "tube_sift.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/<org>/yt-content-analyzer"
-Repository = "https://github.com/<org>/yt-content-analyzer"
-Issues = "https://github.com/<org>/yt-content-analyzer/issues"
+Homepage = "https://github.com/jon-chun/tube-sift"
+Repository = "https://github.com/jon-chun/tube-sift"
+Issues = "https://github.com/jon-chun/tube-sift/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/yt_content_analyzer"]
+packages = ["src/tube_sift"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "src/yt_content_analyzer/**",
+  "src/tube_sift/**",
   "README.md",
   "LICENSE",
   "docs/**",
