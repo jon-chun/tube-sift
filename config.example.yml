@@ -1,0 +1,184 @@
+# yt-content-analyzer example config
+
+# =============================================================================
+# INPUTS
+# =============================================================================
+# Provide exactly one of: VIDEO_URL, SEARCH_TERMS, or YT_SUBSCRIPTIONS.
+VIDEO_URL:
+SEARCH_TERMS: ["AI agents 2026"]
+
+# Subscription mode: fetch latest videos from YouTube channels.
+# Use with: ytca run-all --config config.yml --subscriptions
+# YT_SUBSCRIPTIONS:
+#   - CHANNEL: "@engineerprompt"
+#     MAX_SUB_VIDEOS: 3          # per-channel override (default: MAX_SUB_VIDEOS)
+#   - CHANNEL: "@firaborova"
+MAX_SUB_VIDEOS: 3               # global default per channel
+
+MAX_VIDEOS_PER_TERM: 10
+MAX_TOTAL_VIDEOS: 500
+
+# =============================================================================
+# DISCOVERY FILTERS
+# =============================================================================
+VIDEO_LANG: ["en"]
+VIDEO_LANG_MAIN: "en"
+VIDEO_REGION: ["us"]
+VIDEO_UPLOAD_DATE: "last_year"
+MIN_VIEWS: 1000
+EXCLUDE_LIVE: true
+INCLUDE_SHORTS: false
+
+# =============================================================================
+# COLLECTION BEHAVIOR
+# =============================================================================
+MAX_COMMENT_THREAD_DEPTH: 5
+MAX_RETRY_SCRAPE: 3
+COLLECT_SORT_MODES: ["top", "newest"]
+MAX_COMMENTS_PER_VIDEO: 200000
+CAPTURE_ARTIFACTS_ON_ERROR: true
+CAPTURE_ARTIFACTS_ALWAYS: false
+ON_VIDEO_FAILURE: "skip"         # skip|abort — skip continues to next stage/video on error
+
+# =============================================================================
+# TRANSCRIPTS
+# =============================================================================
+TRANSCRIPTS_ENABLE: true
+TRANSCRIPTS_PREFER_MANUAL: true
+TRANSCRIPTS_ALLOW_AUTO: true
+TRANSCRIPTS_LANG_PREFERENCE: ["en"]
+TRANSCRIPTS_UI_FALLBACK: true
+TRANSCRIPTS_YTDLP_FALLBACK: true
+MAX_TRANSCRIPT_CHARS_PER_VIDEO: 2000000
+TRANSCRIPT_CHUNK_MODE: "time"
+TRANSCRIPT_CHUNK_SECONDS: 60
+TRANSCRIPT_CHUNK_OVERLAP_SECONDS: 10
+
+# =============================================================================
+# RATE LIMITING (safe laptop defaults)
+# =============================================================================
+API_MAX_CONCURRENT_CALLS: 2
+API_RATE_LIMIT_RPS: 2.0
+API_RATE_LIMIT_BURST: 4
+API_COOLDOWN_ON_ERROR_S: 10
+API_JITTER_MS_MIN: 250
+API_JITTER_MS_MAX: 900
+API_TIMEOUT_S: 30
+API_MAX_RETRIES: 3
+BACKOFF_BASE_SECONDS: 2.0
+BACKOFF_MAX_SECONDS: 60.0
+
+# =============================================================================
+# TRANSLATION — provider-based auth
+# =============================================================================
+# API key is resolved from env var based on provider (e.g. OPENAI_API_KEY).
+AUTO_TRANSLATE: false
+TRANSLATE_PROVIDER: "local"          # openai|anthropic|google|deepseek|local
+TRANSLATE_MODEL:                     # e.g. "gpt-4o-mini"
+TRANSLATE_ENDPOINT: "http://localhost:1234/v1"   # only used when provider=local
+TRANSLATE_TIMEOUT_S: 30
+TRANSLATE_MAX_RETRIES: 3
+
+# =============================================================================
+# EMBEDDINGS — provider-based auth
+# =============================================================================
+# API key is resolved from env var based on provider (e.g. OPENAI_API_KEY).
+EMBEDDINGS_ENABLE: true
+EMBEDDINGS_PROVIDER: "local"         # openai|google|local
+EMBEDDINGS_MODEL:                    # e.g. "text-embedding-3-small"
+EMBEDDINGS_ENDPOINT: "http://localhost:1234/v1"  # only used when provider=local
+EMBEDDINGS_TIMEOUT_S: 30
+EMBEDDINGS_MAX_RETRIES: 3
+
+EMBEDDINGS_FALLBACK_TO_SAMPLING: true
+TOPIC_SAMPLING_MAX_COMMENTS_PER_VIDEO: 5000
+TOPIC_SAMPLING_MAX_TRANSCRIPT_CHUNKS_PER_VIDEO: 200
+TOPIC_SAMPLING_STRATEGY: "stratified_time"
+TOPIC_FALLBACK_PER_VIDEO_SUMMARY: true
+TOPIC_FALLBACK_SUMMARY_MODE: "heuristic"
+
+# =============================================================================
+# LLM — for topic extraction via LLM, triples, etc.
+# =============================================================================
+# API key is resolved from env var based on provider (e.g. OPENAI_API_KEY).
+LLM_PROVIDER:                        # openai|anthropic|google|xai|deepseek|local
+LLM_MODEL:                           # e.g. "gpt-5-mini"
+LLM_ENDPOINT:                        # only used when provider=local
+
+# =============================================================================
+# YOUTUBE DATA API (rare fallback)
+# =============================================================================
+# Prefer setting YOUTUBE_API_KEY in .env rather than here.
+YOUTUBE_API_KEY:
+
+# =============================================================================
+# NLP
+# =============================================================================
+TM_CLUSTERING: "nlp"                 # nlp|llm
+SA_GRANULARITY: ["polarity"]         # polarity|emotions|absa
+STRIP_PII: false
+
+# =============================================================================
+# SUMMARIZATION — LLM-based content summarization
+# =============================================================================
+# Requires LLM_PROVIDER to be set. Produces one summary per asset type per video.
+SUMMARY_ENABLE: true
+SUMMARY_MAX_ITEMS: 200              # max items to feed to the LLM (sampled if more)
+SUMMARY_MAX_RESPONSE_TOKENS: 1024   # max tokens for the LLM summary response
+
+# =============================================================================
+# URL EXTRACTION — regex-based URL extraction from comments/transcripts
+# =============================================================================
+# Pure-Python, no LLM needed. Extracts and aggregates URLs mentioned in text.
+URL_EXTRACTION_ENABLE: true
+
+# =============================================================================
+# OUTPUT STRUCTURE
+# =============================================================================
+OUTPUT_PER_VIDEO: true              # true → runs/<ID>/videos/<VID>/{comments,transcripts,enrich}
+                                    # false → flat: runs/<ID>/{comments,transcripts,enrich}
+
+# =============================================================================
+# REPORTING
+# =============================================================================
+REPORT_VARIANTS: ["all", "by-term", "by-vid"]
+RUN_DESC_4WORDS: "demo_run_docs"
+
+# =============================================================================
+# PRICING — USD per 1M tokens (for cost estimation in preflight / dry-run)
+# =============================================================================
+# Follows {provider: {model: {input: X, output: Y}}} convention.
+# "_default" is used when the specific model isn't listed.
+# Override or extend as needed; local/ollama default to $0.
+PRICING_USD_PER_1M_TOKENS:
+  openai:
+    gpt-5-mini:             {input: 0.25, output: 2.00}
+    gpt-4o-mini:            {input: 0.15, output: 0.60}
+    gpt-4o:                 {input: 2.50, output: 10.00}
+    text-embedding-3-small: {input: 0.02, output: 0.0}
+    text-embedding-3-large: {input: 0.13, output: 0.0}
+    _default:               {input: 1.25, output: 10.00}
+  anthropic:
+    claude-haiku-4-5:       {input: 1.00, output: 5.00}
+    claude-sonnet-4-5:      {input: 3.00, output: 15.00}
+    _default:               {input: 3.00, output: 15.00}
+  google:
+    gemini-3-flash-preview: {input: 0.50, output: 3.00}
+    gemini-3-pro-preview:   {input: 2.00, output: 12.00}
+    text-embedding-004:     {input: 0.006, output: 0.0}
+    _default:               {input: 2.00, output: 12.00}
+  xai:
+    grok-4-1-fast-non-reasoning: {input: 0.20, output: 0.50}
+    _default:               {input: 0.20, output: 0.50}
+  deepseek:
+    deepseek-chat:          {input: 0.14, output: 0.28}
+    _default:               {input: 0.14, output: 0.28}
+  fireworks:
+    deepseek-v3p2:          {input: 0.56, output: 1.68}
+    _default:               {input: 1.00, output: 5.00}
+  together:
+    _default:               {input: 0.15, output: 0.60}
+  local:
+    _default:               {input: 0.0, output: 0.0}
+  ollama:
+    _default:               {input: 0.0, output: 0.0}
